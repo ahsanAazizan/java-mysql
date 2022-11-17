@@ -1,0 +1,163 @@
+import java.io.*;
+import java.sql.*;
+
+
+public class CRUDJava {
+    static final String DRIVER = "com.mysql.jdbc.Driver";
+    static final String USER = "root";
+    static final String URL = "jdbc:mysql://localhost/perpustakaan";
+
+    static Connection connection;
+    static Statement statement;
+    static ResultSet resultSet;
+
+    static InputStreamReader inputReader = new InputStreamReader(System.in);
+    static BufferedReader inp = new BufferedReader(inputReader);
+
+    public static void main(String[] args) {
+        try {
+            connection = DriverManager.getConnection(URL, USER, "");
+            statement = connection.createStatement();
+            Class.forName(DRIVER);
+            while (!connection.isClosed()){
+                 menu();
+            }
+
+            statement.close();
+            connection.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void menu(){
+        System.out.println("============MAIN MENU============");
+        System.out.println("1.  Add new data");
+        System.out.println("2.  Search data");
+        System.out.println("3.  Edit data");
+        System.out.println("4.  Delete data");
+        System.out.println("5.  Show all data");
+        System.out.println("-1. Exit\n");
+        System.out.print("Choice > ");
+
+        try {
+            int choice = Integer.parseInt(inp.readLine());
+            if (choice == -1){
+                System.exit(0);
+            } else if (choice == 1){
+                addData();
+            } else if (choice == 2){
+                searchData();
+            } else if (choice == 3){
+                updateData();
+            } else if (choice == 4){
+                deleteData();
+            } else if (choice == 5){
+                showAll();
+            } else {
+                System.out.println("Invalid");
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void searchData(){
+        try {
+            System.out.println("------------------------------------");
+            System.out.println("SEARCH DATA BUKU\n");
+            System.out.print("ID buku : ");
+            int id = Integer.parseInt(inp.readLine());
+            String command = "SELECT * FROM buku WHERE id_buku=" + id;
+            resultSet = statement.executeQuery(command);
+            if (resultSet.next()){
+                System.out.println("Judul : " + resultSet.getString("judul"));
+                System.out.println("Pengarang : " + resultSet.getString("pengarang"));
+            }
+            System.out.println();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void showAll(){
+        String command = "SELECT * FROM buku";
+        try {
+            resultSet = statement.executeQuery(command);
+
+            System.out.println("------------------------------------");
+            System.out.println("DATA BUKU\n");
+            System.out.println("Tampilan data :\n(id). (nama buku) by (pengarang)");
+            System.out.println();
+
+            while (resultSet.next()){
+                int id = resultSet.getInt("id_buku");
+                String judul = resultSet.getString("judul");
+                String pengarang = resultSet.getString("pengarang");
+
+                System.out.println(id + ". " + judul + " by " + pengarang);
+            }
+            System.out.println();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void addData(){
+        try {
+            System.out.println("------------------------------------");
+            System.out.println("ADD DATA BUKU\n");
+            System.out.print("Judul buku : ");
+            String judul = inp.readLine().trim();
+            System.out.print("Pengarang buku : ");
+            String pengarang = inp.readLine().trim();
+
+            String command = "INSERT INTO buku (judul, pengarang) VALUE('" + judul + "', '" + pengarang + "')";
+            statement.execute(String.format(command, judul, pengarang));
+            System.out.println("Succesfully added new data\n");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void updateData(){
+        try {
+            System.out.println("------------------------------------");
+            System.out.println("EDIT DATA BUKU\n");
+            System.out.print("ID buku : ");
+            int id = Integer.parseInt(inp.readLine());
+
+            resultSet = statement.executeQuery("SELECT * FROM buku WHERE id_buku=" + id);
+            if (resultSet.next()){
+                System.out.println("Judul : " + resultSet.getString("judul"));
+                System.out.println("Pengarang : " + resultSet.getString("pengarang"));
+            }
+
+            System.out.println();
+            System.out.print("Edit Judul : ");
+            String judul = inp.readLine();
+            System.out.print("Edit Pengarang : ");
+            String pengarang = inp.readLine();
+
+            String command = "UPDATE buku SET judul='" + judul + "', pengarang='" + pengarang + "' WHERE id_buku=" + id;
+            statement.execute(command);
+            System.out.println("Edited Successfully");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void deleteData(){
+        try {
+            System.out.println("------------------------------------");
+            System.out.println("DELETE DATA BUKU\n");
+            System.out.print("ID buku : ");
+            int id = Integer.parseInt(inp.readLine());
+            String command = String.format("DELETE FROM buku WHERE id_buku=" + id);
+            statement.execute(command);
+            System.out.println("Data deleted Successfully");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+}
